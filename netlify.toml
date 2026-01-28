@@ -5,3 +5,8 @@
 
 [functions]
   node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/.netlify/functions/create-cms-item"
+  to = "/.netlify/functions/create-cms-item"
+  status = 200

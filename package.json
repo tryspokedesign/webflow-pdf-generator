@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
     "dependencies": {
-    "multiparty": "^4.2.3",
+    "lambda-multipart-parser": "^1.0.1",
     "node-fetch": "^3.3.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
