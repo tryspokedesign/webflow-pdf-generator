@@ -1,12 +1,12 @@
 [build]
-  command = "npm run build"
+  command = ""
   functions = "netlify/functions"
   publish = "dist"
 
 [functions]
   node_bundler = "esbuild"
 
-[[redirects]]
-  from = "/.netlify/functions/create-cms-item"
-  to = "/.netlify/functions/create-cms-item"
-  status = 200
+[dev]
+  command = "npm run dev"
+  port = 8888
+  targetPort = 5173
