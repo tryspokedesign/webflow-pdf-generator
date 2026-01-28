@@ -1,6 +1,5 @@
 import { parse } from 'lambda-multipart-parser';
 import fetch from 'node-fetch';
-
 export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return {
@@ -8,21 +7,40 @@ export async function handler(event) {
       body: 'Method Not Allowed',
     };
   }
+  console.log("WEBFLOW_API_KEY:", process.env.WEBFLOW_API_KEY);
+  console.log("WEBFLOW_COLLECTION_ID:", process.env.WEBFLOW_COLLECTION_ID);
 
   try {
-    const { fields, files } = await parse(event);
+    console.log('METHOD:', event.httpMethod);
+    console.log('Event Body Length:', event.body ? event.body.length : 'undefined');
+    console.log('Event isBase64Encoded:', event.isBase64Encoded);
+    console.log('Content-Type:', event.headers['content-type'] || event.headers['Content-Type']);
 
-    // Extract fields
-    const name = fields.find(field => field.name === 'name')?.value || '';
-    const shortDescription = fields.find(field => field.name === 'shortDescription')?.value || '';
-    const richText = fields.find(field => field.name === 'richText')?.value || '';
-    const designType = fields.find(field => field.name === 'designType')?.value || '';
+    // Let lambda-multipart-parser handle the base64 decoding
+    const parsedResult = await parse(event);
+    console.log('Parsed Result:', JSON.stringify(parsedResult, null, 2));
+
+    // Extract fields directly from parsedResult (lambda-multipart-parser puts them directly on the object)
+    const name = parsedResult.name || '';
+    const shortDescription = parsedResult.shortDescription || '';
+    const richText = parsedResult.richText || '';
+    const designType = parsedResult.designType || '';
+
+    console.log('Received Fields:', { name, shortDescription, richText, designType });
+
+    // Validate required fields
+    if (!name) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing required field: name' }),
+      };
+    }
 
     // Handle file uploads (Image and PDF)
+    const files = parsedResult.files || [];
     const imageFile = files.find(file => file.fieldname === 'image');
     const pdfFile = files.find(file => file.fieldname === 'pdf');
 
-    console.log('Received Fields:', { name, shortDescription, richText, designType });
     console.log('Received Files:', { imageFile, pdfFile });
 
     // TODO: Implement actual file uploads to a service like Cloudinary or S3
@@ -55,30 +73,27 @@ export async function handler(event) {
     }
 
     const webflowItemData = {
-      fields: {
+      fieldData: {
         name: name,
         slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-*|-*$/g, ''),
         'short-description': shortDescription,
         'rich-text': richText,
-        'design-type': designType,
+        // 'design-type': designType,
         // Add placeholder for image and PDF if you have URLs
         // 'main-image': imageUrl,
         // 'pdf-file': pdfUrl,
-        _archived: false,
-        _draft: true, // Create as draft initially
       },
     };
 
     try {
       const webflowResponse = await fetch(
-        `https://api.webflow.com/collections/${WEBFLOW_COLLECTION_ID}/items`,
+        `https://api.webflow.com/v2/collections/${WEBFLOW_COLLECTION_ID}/items?skipInvalidFiles=true`,
         {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${WEBFLOW_API_KEY}`,
-            'User-Agent': 'Webflow-PDF-Converter/1.0.0',
           },
           body: JSON.stringify(webflowItemData),
         }
