@@ -87,7 +87,7 @@ export async function handler(event) {
 
     try {
       const webflowResponse = await fetch(
-        `https://api.webflow.com/v2/collections/${WEBFLOW_COLLECTION_ID}/items?skipInvalidFiles=true`,
+        `https://api.webflow.com/v2/collections/${WEBFLOW_COLLECTION_ID}/items/live?skipInvalidFiles=true`,
         {
           method: 'POST',
           headers: {
