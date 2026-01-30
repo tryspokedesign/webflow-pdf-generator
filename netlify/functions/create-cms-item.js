@@ -108,6 +108,10 @@ export async function handler(event) {
       const webflowResult = await webflowResponse.json();
       console.log('Webflow CMS item created:', webflowResult);
 
+      // Construct the page URL
+      const slug = webflowItemData.fieldData.slug;
+      const pageUrl = `https://iridium-dev.webflow.io/pdf-generators/${slug}`;
+
       // Publish the item (optional, can be done manually in Webflow or via another API call)
       // const publishResponse = await fetch(`https://api.webflow.com/collections/${WEBFLOW_COLLECTION_ID}/items/${webflowResult.id}/publish`, {
       //   method: 'POST',
@@ -118,7 +122,13 @@ export async function handler(event) {
 
       return {
         statusCode: 200,
-        body: JSON.stringify({ success: true, webflowItem: webflowResult }),
+        body: JSON.stringify({ 
+          success: true, 
+          webflowItem: webflowResult,
+          itemId: webflowResult.id,
+          pageUrl: pageUrl,
+          slug: slug
+        }),
       };
     } catch (webflowError) {
       console.error('Error interacting with Webflow API:', webflowError);
